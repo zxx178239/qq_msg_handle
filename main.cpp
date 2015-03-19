@@ -12,6 +12,6 @@ int main(int argc, char *argv[])
 {
 	Handleqq myHandle;
 	myHandle.saveTxtToMap(FILENAME);
-//	myHandle.printMapToTxt();
+	myHandle.printMapToTxt();
 	myHandle.saveEveToTxt();
 }

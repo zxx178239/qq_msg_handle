@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sstream>
+#include <algorithm>
 #include "seg.h"
 
 void Handleqq::saveTxtToMap(std::string filename)
@@ -78,10 +79,10 @@ void Handleqq::saveTxtToMap(std::string filename)
 		head = qqNum = qqNameNum = txt = "";
 	}
 	ifs.close();
-
+	saveStopToMap(STOPFILENAME);
+//	printStopWords();
 }
 //测试使用，无任何用处
-/*
 void Handleqq::printMapToTxt()
 {
 	SVSMAP::iterator it = txtMap.begin();
@@ -96,7 +97,7 @@ void Handleqq::printMapToTxt()
 		newofs << std::endl;
 	}
 	newofs.close();
-}*/
+}
 
 void Handleqq::saveQQNameNumToMap(std::string nameNumMerge, std::string &qqNum)
 {
@@ -211,12 +212,20 @@ void Handleqq::countWords(std::string sentence)
 	std::vector<std::string>::iterator it_word = word.begin();
 	for(; it_word != word.end(); ++ it_word)
 	{
-		if(eveWords.find(*it_word) == eveWords.end())
-		{//没有找到单词
-			eveWords.insert(std::make_pair(*it_word, 1));
+		if(*it_word == " ")
+			continue;
+		if(isUseWords(*it_word) == false)
+		{//判断当前的为废话
+			continue;
 		}else
-		{//找到单词
-			eveWords[*it_word] ++;
+		{
+			if(eveWords.find(*it_word) == eveWords.end())
+			{//没有找到单词
+				eveWords.insert(std::make_pair(*it_word, 1));
+			}else
+			{//找到单词
+				eveWords[*it_word] ++;
+			}
 		}
 	}
 }
@@ -244,4 +253,46 @@ void Handleqq::printTopTen(std::string filename, std::string qqNum)
 	{
 		ofs << it->second << " " << it->first << std::endl;
 	}
+}
+
+bool Handleqq::isUseWords(std::string words)
+{
+	int index;
+	std::vector<std::string>::iterator it = stopWords.begin();
+	for(; it != stopWords.end(); ++ it)
+	{
+		if(*it == words)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void Handleqq::saveStopToMap(std::string filename)
+{
+	std::ifstream ifs(filename.c_str());
+	if(!ifs.good())
+	{
+		std::cout << "stop file open fail" << std::endl;
+		return;
+	}
+	std::string line;
+	while(getline(ifs, line))
+	{
+		std::istringstream iss(line);
+		std::string str;
+		iss >> str;
+		stopWords.push_back(str);
+	}
+}
+
+void Handleqq::printStopWords()
+{
+	std::vector<std::string>::iterator it = stopWords.begin();
+	for(; it != stopWords.end(); ++ it)
+	{
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
 }
